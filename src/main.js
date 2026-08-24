@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient.js'
+import { supabase } from './lib/supabaseClient.js'
 
 // Grab the elements from our HTML file
 const emailInput = document.getElementById('email')
