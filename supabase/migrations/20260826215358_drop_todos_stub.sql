@@ -1,0 +1,25 @@
+-- ============================================================================
+-- Drops public.todos, scaffold residue from the baseline pull.
+--
+-- Verified unused before writing this:
+--   * grep -rn "todos" src/            -> no matches
+--   * grep over the whole repo (excluding node_modules, dist and
+--     supabase/migrations)             -> no matches
+--   * the app makes no .from() or .rpc() calls at all
+--
+-- Shape confirms it was never built on: the table has only `id` and
+-- `created_at`; no payload column was ever added. RLS is enabled with zero
+-- policies, so it is unreachable through the Data API regardless of contents.
+--
+-- CAVEAT: because RLS denies all reads, the anon key cannot distinguish an
+-- empty table from a populated one -- REST returns [] either way. This drop is
+-- therefore irreversible against unknown contents. If that matters, run
+--     select count(*) from public.todos;
+-- in the dashboard SQL editor first.
+--
+-- No CASCADE, deliberately: if anything unexpectedly depends on this table the
+-- drop fails loudly rather than silently removing the dependent object.
+-- The identity sequence todos_id_seq is owned by the column and drops with it.
+-- ============================================================================
+
+drop table if exists public.todos;
