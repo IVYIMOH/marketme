@@ -5,9 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "db:reset": "supabase db reset",
+    "db:up": "supabase migration up --local",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,12 +22,7 @@
     "url": "https://github.com/IVYIMOH/marketme/issues"
   },
   "homepage": "https://github.com/IVYIMOH/marketme#readme",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.112.4",
-    "dotenv": "^17.4.2"
-  },
   "devDependencies": {
-    "supabase": "^2.115.0",
-    "vite": "^8.2.2"
+    "supabase": "^2.115.0"
   }
 }

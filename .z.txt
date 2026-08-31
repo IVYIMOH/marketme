@@ -1,0 +1,2 @@
+/dev/sda5        50G   48G     0 100% /
+Restarting (1) 20 seconds ago

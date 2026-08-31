@@ -223,7 +223,7 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-enable_confirmations = false
+enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
@@ -258,7 +258,7 @@ otp_expiry = 3600
 # Allow/disallow new user signups via SMS to your project.
 enable_signup = false
 # If enabled, users need to confirm their phone number before signing in.
-enable_confirmations = false
+enable_confirmations = true
 # Template for sending OTP to users
 template = "Your code is {{ .Code }}"
 # Controls the minimum amount of time that must pass before sending another sms otp.
@@ -281,9 +281,12 @@ max_frequency = "5s"
 # uri = "pg-functions://postgres/auth/before-user-created-hook"
 
 # This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
-# [auth.hook.custom_access_token]
-# enabled = true
-# uri = "pg-functions://<database>/<schema>/<hook_name>"
+# Writes profiles.role into app_metadata.app_role on every issued JWT.
+# frontend/lib/auth.ts:28 reads that claim; without this hook every user
+# resolves to 'buyer' client-side and role-gated routes bounce real admins.
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
 [auth.sms.twilio]
@@ -381,6 +384,25 @@ policy = "per_worker"
 inspector_port = 8083
 # The Deno major version to use.
 deno_version = 2
+
+# ---------------------------------------------------------------------------
+# Edge functions.
+#
+# create-invoice is called by a signed-in buyer, so the platform verifies the
+# JWT before the function runs. The function ALSO verifies it internally and
+# derives buyer_id from it, so a forged body cannot buy on someone else's
+# behalf.
+#
+# lnbits-webhook is called by LNbits, which has no Supabase JWT — leaving
+# verify_jwt on would reject every settlement callback with 401. The endpoint
+# is therefore public, which is exactly why it trusts nothing in the payload
+# and re-verifies settlement against the LNbits API before writing.
+# ---------------------------------------------------------------------------
+[functions.create-invoice]
+verify_jwt = true
+
+[functions.lnbits-webhook]
+verify_jwt = false
 
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
