@@ -69,8 +69,8 @@ export async function createInvoice(mediaId: string): Promise<Invoice | AlreadyP
  *
  * Read directly through RLS: payments_select_own restricts a buyer to
  * buyer_id = auth.uid(), so no endpoint is needed and no other buyer's row is
- * reachable. Settlement is written only by the webhook, so a 'paid' row here
- * is server-verified evidence, not something the client can fake.
+ * reachable. Settlement is written only server-side, so a 'paid' row here is
+ * server-verified evidence, not something the client can fake.
  */
 export async function getMyPaymentForMedia(mediaId: string): Promise<PaymentRow | null> {
   const { data: userData } = await supabase.auth.getUser();
@@ -95,6 +95,48 @@ export async function getMyPaymentForMedia(mediaId: string): Promise<PaymentRow 
 export async function hasPaidFor(mediaId: string): Promise<boolean> {
   const row = await getMyPaymentForMedia(mediaId);
   return row?.status === 'paid';
+}
+
+export type CheckResult = {
+  status: 'paid' | 'pending' | 'expired' | 'failed' | 'refunded' | 'unknown';
+  paymentId?: string;
+  justSettled?: boolean;
+  reason?: string;
+};
+
+/**
+ * Authoritative status check. Asks the server to re-verify this buyer's invoice
+ * directly against the Lightning provider, settling the row if it has been paid.
+ *
+ * This — not the webhook — is what guarantees a real payment is recognised.
+ * LNbits' webhook delivery looks to be single-attempt, and a callback can also
+ * be lost to a cold start or a network blip, so polling only the payments row
+ * could leave a buyer who genuinely paid stuck on 'pending' forever.
+ *
+ * Calling this cannot manufacture a payment: the server derives the buyer from
+ * the JWT, looks up only their own row, and flips it to paid solely on the
+ * provider's own report for the matching amount.
+ */
+export async function checkPayment(args: { mediaId?: string; paymentId?: string }): Promise<CheckResult> {
+  const { data, error } = await supabase.functions.invoke('check-payment', { body: args });
+
+  if (error) {
+    let detail = error.message;
+    const res = (error as { context?: Response }).context;
+    if (res && typeof res.json === 'function') {
+      try {
+        const body = await res.json();
+        // A 502 here means "we could not verify", which is NOT "not paid".
+        if (body?.status === 'unknown') return { status: 'unknown', reason: body?.error };
+        if (body?.error) detail = body.error;
+      } catch {
+        /* keep the original message */
+      }
+    }
+    throw new PaymentError(detail);
+  }
+
+  return data as CheckResult;
 }
 
 /**

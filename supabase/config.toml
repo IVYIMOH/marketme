@@ -397,8 +397,15 @@ deno_version = 2
 # verify_jwt on would reject every settlement callback with 401. The endpoint
 # is therefore public, which is exactly why it trusts nothing in the payload
 # and re-verifies settlement against the LNbits API before writing.
+#
+# check-payment is the authoritative reconciliation path, called by the buyer's
+# own page while it waits. Authenticated, and it derives buyer_id from the
+# verified token, so a caller can only ever reconcile their own invoice.
 # ---------------------------------------------------------------------------
 [functions.create-invoice]
+verify_jwt = true
+
+[functions.check-payment]
 verify_jwt = true
 
 [functions.lnbits-webhook]

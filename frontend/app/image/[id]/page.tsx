@@ -10,6 +10,7 @@ import {
   createInvoice,
   getMyPaymentForMedia,
   getDownloadUrl,
+  checkPayment,
   type Invoice,
   type PaymentRow,
 } from '@/lib/lightning';
@@ -82,24 +83,43 @@ export default function ImageDetailPage() {
     return () => { active = false; };
   }, [id, payment?.status]);
 
-  // Poll the buyer's own payments row. Settlement is written server-side by
-  // the webhook, so this is just observing a server-verified fact.
+  // Poll while an invoice is outstanding.
+  //
+  // This calls check-payment rather than just re-reading the payments row: the
+  // row only changes when something server-side verifies with the provider, and
+  // the webhook cannot be relied on to be that something (single-attempt
+  // delivery, cold starts). check-payment verifies on demand, so a buyer who
+  // genuinely paid is never left stuck on 'pending'.
   const startPolling = useCallback(() => {
     if (!id || pollRef.current) return;
     pollRef.current = setInterval(async () => {
       try {
+        const result = await checkPayment({ mediaId: id });
+        if (result.status === 'unknown') return; // provider unreachable; keep waiting
         const row = await getMyPaymentForMedia(id);
-        if (!row) return;
-        setPayment(row);
-        if (row.status !== 'pending') stopPolling();
-      } catch { /* keep polling through transient errors */ }
+        if (row) setPayment(row);
+        if (result.status !== 'pending') stopPolling();
+      } catch {
+        // Fall back to a plain row read so a transient function error does not
+        // stall a settlement that already landed via the webhook.
+        try {
+          const row = await getMyPaymentForMedia(id);
+          if (row) {
+            setPayment(row);
+            if (row.status !== 'pending') stopPolling();
+          }
+        } catch { /* keep polling */ }
+      }
     }, POLL_MS);
   }, [id, stopPolling]);
 
+  // Reconcile whenever a pending row exists — not only right after creating an
+  // invoice. A buyer returning to the page after paying (with the webhook lost)
+  // has a pending row and no invoice in state, and must still get settled.
   useEffect(() => {
-    if (payment?.status === 'pending' && invoice) startPolling();
+    if (payment?.status === 'pending') startPolling();
     return stopPolling;
-  }, [payment?.status, invoice, startPolling, stopPolling]);
+  }, [payment?.status, startPolling, stopPolling]);
 
   async function onPay() {
     if (!id) return;
