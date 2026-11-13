@@ -44,7 +44,7 @@ function Submissions() {
               get_my_submissions(), never from a base-table read. */}
           {m.storage_key && <p className="meta">key: {m.storage_key}</p>}
           {m.status === 'rejected' && m.reject_reason && (
-            <p className="meta" style={{ color: '#991b1b' }}>Reason: {m.reject_reason}</p>
+            <p className="meta rejection-reason">Reason: {m.reject_reason}</p>
           )}
           {m.moderated_at && (
             <p className="meta">moderated {new Date(m.moderated_at).toLocaleString()}</p>
