@@ -49,7 +49,7 @@ export default function ProtectedRoute({
   }, [router, requiredRole]);
 
   if (!checked) {
-    return <div className="text-sm text-slate-500 py-16 text-center">Checking session…</div>;
+    return <div className="session-loading">Checking session…</div>;
   }
 
   return authorized ? <>{children}</> : null;

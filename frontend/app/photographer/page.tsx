@@ -45,7 +45,7 @@ export default function PhotographersPage() {
             <article key={p.id} className="card">
               <div className="row" style={{ justifyContent: 'space-between' }}>
                 <h3 style={{ margin: 0 }}>{names[p.user_id] ?? 'Photographer'}</h3>
-                <span className="badge level">{p.level}</span>
+                <span className={`badge level ${p.level}`}>{p.level}</span>
               </div>
               <p className="meta">{p.bio?.trim() ? p.bio : <em>No bio yet.</em>}</p>
               {p.verified_at && (
