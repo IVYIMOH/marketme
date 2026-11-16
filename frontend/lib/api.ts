@@ -2,7 +2,12 @@ import { supabase } from './supabaseClient';
 
 export interface Media {
   id: string;
-  photographer_id: string;
+  photographer_id: string | null;
+  is_sample: boolean;
+  photographer_credit: string | null;
+  source_url: string | null;
+  license_name: string | null;
+  license_url: string | null;
   title: string;
   category: string;
   location: string;
@@ -26,12 +31,14 @@ export interface Photographer {
   created_at: string;
 }
 
+const PUBLIC_MEDIA_COLUMNS = 'id, photographer_id, title, category, location, lens, price_sats, preview_key, status, created_at, is_sample, photographer_credit, source_url, license_name, license_url';
+
 /** Public gallery. Only ever returns the already-safe, publicly-granted
  * columns — never storage_key. Uses preview_key for the image source. */
 export async function getMedia(): Promise<Media[]> {
   const { data, error } = await supabase
     .from('media')
-    .select('id, photographer_id, title, category, location, lens, price_sats, preview_key, status, created_at')
+    .select(PUBLIC_MEDIA_COLUMNS)
     .eq('status', 'approved')
     .order('created_at', { ascending: false });
   if (error) throw error;
@@ -41,7 +48,7 @@ export async function getMedia(): Promise<Media[]> {
 export async function getMediaById(id: string): Promise<Media> {
   const { data, error } = await supabase
     .from('media')
-    .select('id, photographer_id, title, category, location, lens, price_sats, preview_key, status, created_at')
+    .select(PUBLIC_MEDIA_COLUMNS)
     .eq('id', id)
     .single();
   if (error) throw error;
@@ -91,7 +98,7 @@ export async function submitMedia(input: {
     // Must name the granted columns explicitly. A bare .select() means
     // RETURNING *, which needs SELECT on storage_key — deliberately withheld
     // from `authenticated`, so the whole insert failed with 42501.
-    .select('id, photographer_id, title, category, location, lens, price_sats, preview_key, status, created_at')
+    .select(PUBLIC_MEDIA_COLUMNS)
     .single();
   if (error) throw error;
   return data as Media;

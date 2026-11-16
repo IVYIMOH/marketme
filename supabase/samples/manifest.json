@@ -1,0 +1,112 @@
+[
+  {
+    "filename": "elephant.jpg",
+    "title": "Elephants crossing the Luangwa",
+    "category": "Wildlife",
+    "location": "South Luangwa National Park, Zambia",
+    "photographer_credit": "Geoff Gallice",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Loxodonta_africana_South_Luangwa_National_Park_(1).jpg",
+    "license_name": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "sha256": "c4ca68f8ca5b5ac36320acacba22214181b44983dd95a4f40f3f9c93c8a6a6a9"
+  },
+  {
+    "filename": "parrot.jpg",
+    "title": "Orange-winged Amazon",
+    "category": "Wildlife",
+    "location": "Napo Province, Ecuador",
+    "photographer_credit": "Geoff Gallice",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Amazona_amazonica_-near_Yarina_Lodge,_Napo_Province,_Ecuador_-head-8.jpg",
+    "license_name": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "sha256": "d444ca28e0b7cab10ce6df010a17b3a17c3c82358dc66a691acaa8ca914ce669"
+  },
+  {
+    "filename": "macaw.jpg",
+    "title": "Hyacinth macaws at their nest",
+    "category": "Wildlife",
+    "location": "Mato Grosso do Sul, Brazil",
+    "photographer_credit": "Geoff Gallice",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Anodorhynchus_hyacinthinus_-Mato_Grosso_do_Sul,_Brazil_-nest-8_(1).jpg",
+    "license_name": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "sha256": "78737e1f0c80cbbc4ca5862bf9534bbbae89bf6e6952ee90d41e4aa7eb56b8f8"
+  },
+  {
+    "filename": "egret.jpg",
+    "title": "Egret in the Pantanal",
+    "category": "Wildlife",
+    "location": "Pantanal, Brazil",
+    "photographer_credit": "Geoff Gallice",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Ardea_alba_southern_Brazilian_Pantanal_1.jpg",
+    "license_name": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "sha256": "f40fb4358fad9f70fe879a231fd240bc463b246513ae1aab6674cab4f419a0c0"
+  },
+  {
+    "filename": "capuchin.jpg",
+    "title": "Capuchin in the rainforest",
+    "category": "Wildlife",
+    "location": "La Selva Biological Station, Costa Rica",
+    "photographer_credit": "Geoff Gallice",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Cebus_capucinus_(La_Selva,_Heredia,_CR).jpg",
+    "license_name": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "sha256": "cf48cb624d7a2c897baa7c02da9420796b8f8965acd354c9a4c67da12dcd778e"
+  },
+  {
+    "filename": "sloth.jpg",
+    "title": "Two-toed sloth",
+    "category": "Wildlife",
+    "location": "La Selva Biological Station, Costa Rica",
+    "photographer_credit": "Geoff Gallice",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Choloepus_hoffmanni_(Puerto_Viejo,_CR).jpg",
+    "license_name": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "sha256": "846d0aaa81296c9aef0a71e8abd44b005baa9c474a7b494e37cb98f7f19275a0"
+  },
+  {
+    "filename": "agouti.jpg",
+    "title": "Central American agouti",
+    "category": "Wildlife",
+    "location": "Gamboa, Panama",
+    "photographer_credit": "Geoff Gallice",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Dasyprocta_punctata_(Gamboa,_Panama).jpg",
+    "license_name": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "sha256": "859d5bffc3d410438c93e6c61c3d8459441d8dee307be9c7e0508f6a740ade80"
+  },
+  {
+    "filename": "stork.jpg",
+    "title": "Saddle-billed stork",
+    "category": "Wildlife",
+    "location": "South Luangwa National Park, Zambia",
+    "photographer_credit": "Geoff Gallice",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Ephippiorhynchus_senegalensis_-South_Luangwa_National_Park,_Zambia_-female-8.jpg",
+    "license_name": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "sha256": "6a7c4581454f3cf2ca59b41cec1c04ea1393a66c3c591e9895efda19d108401c"
+  },
+  {
+    "filename": "anole.jpg",
+    "title": "Amazonian anole",
+    "category": "Wildlife",
+    "location": "Yasuni National Park, Ecuador",
+    "photographer_credit": "Geoff Gallice",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Anolis_transversalis.jpg",
+    "license_name": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "sha256": "6a16050414b6ac193f56e2efac926f9a39e2d5120fe39913a681f3591c566f45"
+  },
+  {
+    "filename": "luna-moth.jpg",
+    "title": "Luna moth",
+    "category": "Macro",
+    "location": "Micanopy, Florida, USA",
+    "photographer_credit": "Geoff Gallice",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Actias_luna_in_Florida.jpg",
+    "license_name": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "sha256": "4424f44df13b4b2c0d77c4883a034678b0b70e2d9f34c61c63491c93fe875d2d"
+  }
+]

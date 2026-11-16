@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
   // Never trust a client-supplied amount. Only approved media is purchasable.
   const { data: media, error: mediaError } = await admin
     .from('media')
-    .select('id, title, price_sats, status')
+    .select('id, title, price_sats, status, is_sample')
     .eq('id', mediaId)
     .maybeSingle();
 
@@ -70,6 +70,9 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'Could not load that item' }, 500);
   }
   if (!media) return jsonResponse({ error: 'No such item' }, 404);
+  if (media.is_sample) {
+    return jsonResponse({ error: 'Sample images are not for sale' }, 409);
+  }
   if (media.status !== 'approved') {
     return jsonResponse({ error: 'That item is not for sale' }, 409);
   }

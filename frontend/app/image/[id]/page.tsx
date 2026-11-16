@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import MediaThumb from '@/components/MediaThumb';
+import SampleAttribution from '@/components/SampleAttribution';
 import { getMediaById, getPhotographers, getDisplayNames, type Media } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 import {
@@ -41,12 +42,21 @@ export default function ImageDetailPage() {
   useEffect(() => {
     if (!id) return;
     let active = true;
+    setMedia(null);
+    setPhotographerName(null);
+    setError(null);
+    setPayment(null);
+    setInvoice(null);
+    setDownloadUrl(null);
+    setPayError(null);
 
     (async () => {
       try {
         const m = await getMediaById(id);
         if (!active) return;
         setMedia(m);
+
+        if (m.is_sample) return;
 
         const photographers = await getPhotographers();
         if (!active) return;
@@ -75,13 +85,13 @@ export default function ImageDetailPage() {
 
   // Once paid, fetch the gated download URL.
   useEffect(() => {
-    if (!id || payment?.status !== 'paid') return;
+    if (!id || !media || media.is_sample || payment?.status !== 'paid') return;
     let active = true;
     getDownloadUrl(id)
       .then((u) => { if (active) setDownloadUrl(u); })
       .catch(() => {});
     return () => { active = false; };
-  }, [id, payment?.status]);
+  }, [id, media, payment?.status]);
 
   // Poll while an invoice is outstanding.
   //
@@ -91,7 +101,7 @@ export default function ImageDetailPage() {
   // delivery, cold starts). check-payment verifies on demand, so a buyer who
   // genuinely paid is never left stuck on 'pending'.
   const startPolling = useCallback(() => {
-    if (!id || pollRef.current) return;
+    if (!id || !media || media.is_sample || pollRef.current) return;
     pollRef.current = setInterval(async () => {
       try {
         const result = await checkPayment({ mediaId: id });
@@ -111,7 +121,7 @@ export default function ImageDetailPage() {
         } catch { /* keep polling */ }
       }
     }, POLL_MS);
-  }, [id, stopPolling]);
+  }, [id, media, stopPolling]);
 
   // Reconcile whenever a pending row exists — not only right after creating an
   // invoice. A buyer returning to the page after paying (with the webhook lost)
@@ -122,7 +132,7 @@ export default function ImageDetailPage() {
   }, [payment?.status, startPolling, stopPolling]);
 
   async function onPay() {
-    if (!id) return;
+    if (!id || !media || media.is_sample) return;
     setPayError(null);
     setBusy(true);
     try {
@@ -183,13 +193,14 @@ export default function ImageDetailPage() {
           <h1>{media.title}</h1>
           <p className="meta">{media.category} · {media.location}</p>
           {media.lens && <p className="meta">Lens: {media.lens}</p>}
-          <p className="meta">
+          {media.is_sample ? <SampleAttribution media={media} /> : <p className="meta">
             Photographer: {photographerName ?? <span className="subtle">unknown</span>}
-          </p>
+          </p>}
           <p className="price" style={{ fontSize: '1.15rem' }}>
-            {media.price_sats.toLocaleString()} sats
+            {media.is_sample ? 'Sample — not for sale' : `${media.price_sats.toLocaleString()} sats`}
           </p>
 
+          {!media.is_sample && <>
           {payError && <div className="error" style={{ marginTop: '0.75rem' }}>{payError}</div>}
 
           {/* ---------- paid: download unlocked ---------- */}
@@ -263,6 +274,7 @@ export default function ImageDetailPage() {
               That invoice expired. Use the pay button to create a new one.
             </p>
           )}
+          </>}
         </div>
       </div>
     </>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import MediaThumb from '@/components/MediaThumb';
+import SampleAttribution from '@/components/SampleAttribution';
 import { getMedia, type Media } from '@/lib/api';
 
 export default function GalleryPage() {
@@ -46,7 +47,8 @@ export default function GalleryPage() {
               </Link>
               <p className="meta">{m.category} · {m.location}</p>
               {m.lens && <p className="meta">{m.lens}</p>}
-              <p className="price">{m.price_sats.toLocaleString()} sats</p>
+              <p className="price">{m.is_sample ? 'Sample — not for sale' : `${m.price_sats.toLocaleString()} sats`}</p>
+              {m.is_sample && <SampleAttribution media={m} />}
             </article>
           ))}
         </div>
