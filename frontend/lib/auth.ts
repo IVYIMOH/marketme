@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 import { getMyPhotographerProfile } from './api';
-import { chooseSignInDestination, type SignInOptions } from './authRedirect';
+import { chooseSignInDestination, validateNext, type SignInOptions } from './authRedirect';
 
 export type AppRole = 'buyer' | 'photographer' | 'admin';
 
@@ -11,7 +11,15 @@ export interface AppUser {
   role: AppRole;
 }
 
-export class AuthError extends Error {}
+export class AuthError extends Error {
+  readonly code?: string;
+
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = 'AuthError';
+    this.code = code;
+  }
+}
 
 /**
  * The custom_access_token_hook (see the migration) writes our app role
@@ -64,13 +72,29 @@ function toAppUser(session: {
   };
 }
 
-export async function register(email: string, password: string, displayName: string): Promise<AppUser> {
+function authCallbackUrl(options: SignInOptions): string {
+  const url = new URL('/auth/callback', window.location.origin);
+  const next = validateNext(options.next);
+  if (next) url.searchParams.set('next', next);
+  if (options.photographerIntent) url.searchParams.set('photographer', '1');
+  return url.toString();
+}
+
+export async function register(
+  email: string,
+  password: string,
+  displayName: string,
+  options: SignInOptions = {},
+): Promise<AppUser> {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { display_name: displayName } },
+    options: {
+      data: { display_name: displayName },
+      emailRedirectTo: authCallbackUrl(options),
+    },
   });
-  if (error) throw new AuthError(error.message);
+  if (error) throw new AuthError(error.message, error.code);
   if (!data.session) {
     // Email confirmation required — no session yet. Caller must show a
     // "check your email" state, same real behavior proven in marketme.
@@ -81,7 +105,7 @@ export async function register(email: string, password: string, displayName: str
 
 export async function login(email: string, password: string): Promise<AppUser> {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) throw new AuthError(error.message);
+  if (error) throw new AuthError(error.message, error.code);
   return toAppUser(data.session!);
 }
 
@@ -111,12 +135,24 @@ export function onAuthStateChange(callback: (user: AppUser | null) => void) {
   });
 }
 
-export async function signInWithGoogle(): Promise<void> {
+export async function signInWithGoogle(options: SignInOptions = {}): Promise<void> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: `${window.location.origin}/auth/callback` },
+    options: { redirectTo: authCallbackUrl(options) },
   });
-  if (error) throw new AuthError(error.message);
+  if (error) throw new AuthError(error.message, error.code);
+}
+
+export async function resendConfirmation(
+  email: string,
+  options: SignInOptions = {},
+): Promise<void> {
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: { emailRedirectTo: authCallbackUrl(options) },
+  });
+  if (error) throw new AuthError(error.message, error.code);
 }
 
 export async function getSignInDestination(
