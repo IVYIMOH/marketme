@@ -4,6 +4,7 @@ node_modules
 .env.*.local
 dist
 .env.example
+!frontend/.env.example
 
 frontend/.next/
 frontend/out

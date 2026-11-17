@@ -255,3 +255,21 @@ button:disabled {
   color: var(--color-text-secondary);
   font-size: 0.9rem;
 }
+
+.auth-confirmation { display: grid; gap: 0.5rem; }
+.auth-confirmation .subtle { margin: 0; }
+.auth-spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.5em;
+  vertical-align: -0.15em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: auth-spin 0.75s linear infinite;
+}
+@keyframes auth-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .auth-spinner { animation: none; }
+}
