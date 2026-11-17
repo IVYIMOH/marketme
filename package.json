@@ -23,6 +23,6 @@
   },
   "homepage": "https://github.com/IVYIMOH/marketme#readme",
   "devDependencies": {
-    "supabase": "^2.115.0"
+    "supabase": "^3.1.0"
   }
 }

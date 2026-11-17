@@ -1,0 +1,8 @@
+# Runtime artifacts from the settlement/gating tests — never commit.
+# .jwt_* hold real (local) access tokens; the rest is scratch state.
+.jwt_*
+.stub_requests.log
+.stub_server.log
+.stub_verdict
+.functions_serve.log
+.env.test
