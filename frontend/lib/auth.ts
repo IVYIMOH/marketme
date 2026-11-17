@@ -1,4 +1,6 @@
 import { supabase } from './supabaseClient';
+import { getMyPhotographerProfile } from './api';
+import { chooseSignInDestination, type SignInOptions } from './authRedirect';
 
 export type AppRole = 'buyer' | 'photographer' | 'admin';
 
@@ -115,6 +117,21 @@ export async function signInWithGoogle(): Promise<void> {
     options: { redirectTo: `${window.location.origin}/auth/callback` },
   });
   if (error) throw new AuthError(error.message);
+}
+
+export async function getSignInDestination(
+  user: AppUser,
+  options: SignInOptions = {},
+): Promise<string> {
+  if (user.role === 'admin') return '/admin';
+
+  const photographer = await getMyPhotographerProfile();
+  return chooseSignInDestination({
+    role: user.role,
+    hasPhotographerProfile: photographer?.user_id === user.id,
+    next: options.next,
+    photographerIntent: options.photographerIntent,
+  });
 }
 
 export function homeForRole(role: AppRole): string {
