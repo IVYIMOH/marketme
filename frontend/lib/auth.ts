@@ -8,6 +8,7 @@ export interface AppUser {
   id: string;
   email: string | null;
   displayName: string;
+  company: string | null;
   role: AppRole;
 }
 
@@ -64,10 +65,14 @@ function toAppUser(session: {
   access_token?: string;
   user: { id: string; email?: string | null; app_metadata?: Record<string, unknown>; user_metadata?: Record<string, unknown> };
 }): AppUser {
+  const metadata = session.user.user_metadata ?? {};
+  const displayName = [metadata.display_name, metadata.full_name, metadata.name]
+    .find((value): value is string => typeof value === 'string' && Boolean(value.trim()));
   return {
     id: session.user.id,
     email: session.user.email ?? null,
-    displayName: (session.user.user_metadata?.display_name as string) ?? 'User',
+    displayName: displayName?.trim() ?? 'User',
+    company: typeof metadata.company === 'string' ? metadata.company.trim() || null : null,
     role: extractRole(session),
   };
 }
@@ -115,9 +120,13 @@ export async function logout(): Promise<void> {
 }
 
 export async function getCurrentUser(): Promise<AppUser | null> {
-  const { data } = await supabase.auth.getSession();
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw new AuthError(error.message, error.code);
   if (!data.session) return null;
-  return toAppUser(data.session);
+  const { data: userData, error: userError } = await supabase.auth.getUser(data.session.access_token);
+  if (userError) throw new AuthError(userError.message, userError.code);
+  if (!userData.user || userData.user.id !== data.session.user.id) return null;
+  return toAppUser({ ...data.session, user: userData.user });
 }
 
 /**

@@ -22,7 +22,9 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     let active = true;
-    const next = new URLSearchParams(window.location.search).get('next');
+    const query = new URLSearchParams(window.location.search);
+    const next = query.get('next');
+    const photographerIntent = query.get('photographer') === '1';
 
     // The URL may carry an OAuth error instead of a grant.
     const params = new URLSearchParams(
@@ -43,7 +45,7 @@ export default function AuthCallbackPage() {
         const user = await getCurrentUser();
         if (!active) return;
         if (user) {
-          const destination = await getSignInDestination(user, { next });
+          const destination = await getSignInDestination(user, { next, photographerIntent });
           if (active) router.replace(destination);
           return;
         }

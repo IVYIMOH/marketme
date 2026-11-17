@@ -29,7 +29,10 @@ export interface Photographer {
   level: 'field' | 'verified' | 'master';
   verified_at: string | null;
   created_at: string;
+  company?: string | null; // Returned by the private profile accessor.
 }
+
+const PUBLIC_PHOTOGRAPHER_COLUMNS = 'id, user_id, bio, level, verified_at, created_at';
 
 const PUBLIC_MEDIA_COLUMNS = 'id, photographer_id, title, category, location, lens, price_sats, preview_key, status, created_at, is_sample, photographer_credit, source_url, license_name, license_url';
 
@@ -56,21 +59,43 @@ export async function getMediaById(id: string): Promise<Media> {
 }
 
 export async function getPhotographers(): Promise<Photographer[]> {
-  const { data, error } = await supabase.from('photographers').select('*');
+  const { data, error } = await supabase.from('photographers').select(PUBLIC_PHOTOGRAPHER_COLUMNS);
   if (error) throw error;
   return data as Photographer[];
 }
 
 export async function getMyPhotographerProfile(): Promise<Photographer | null> {
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) return null;
-  const { data, error } = await supabase
-    .from('photographers')
-    .select('*')
-    .eq('user_id', userData.user.id)
-    .maybeSingle();
-  if (error) throw error;
-  return data as Photographer | null;
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (!userData.user) {
+    if (userError && userError.name !== 'AuthSessionMissingError') throw new Error(userError.message);
+    return null;
+  }
+  if (userError) throw new Error(userError.message);
+  const { data, error } = await supabase.rpc('get_my_photographer_profile').maybeSingle();
+  if (error) throw new Error(error.message);
+  const profile = data as Photographer | null;
+  if (profile && profile.user_id !== userData.user.id) {
+    throw new Error('Your session changed. Please sign in again.');
+  }
+  return profile;
+}
+
+export async function completeMyPhotographerProfile(input: {
+  displayName: string;
+  company: string;
+}): Promise<void> {
+  const displayName = input.displayName.trim();
+  const company = input.company.trim();
+  if (!displayName || !company) throw new Error('Name and company are required.');
+  const { error } = await supabase.rpc('complete_photographer_profile', {
+    profile_name: displayName,
+    company_name: company,
+  });
+  if (error) throw new Error(error.message);
+  const { error: metadataError } = await supabase.auth.updateUser({
+    data: { display_name: displayName, company },
+  });
+  if (metadataError) throw new Error(metadataError.message);
 }
 
 export async function submitMedia(input: {
