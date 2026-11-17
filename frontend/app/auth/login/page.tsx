@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { login, homeForRole } from '@/lib/auth';
+import { login, getSignInDestination } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,7 +18,8 @@ export default function LoginPage() {
     setBusy(true);
     try {
       const user = await login(email, password);
-      router.replace(homeForRole(user.role));
+      const next = new URLSearchParams(window.location.search).get('next');
+      router.replace(await getSignInDestination(user, { next }));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -29,7 +30,7 @@ export default function LoginPage() {
   return (
     <>
       <h1>Sign in</h1>
-      <p className="subtle">Routed by role via homeForRole() once the session exists.</p>
+      <p className="subtle">Use your email and password to sign in.</p>
 
       <form className="stack" onSubmit={onSubmit}>
         {error && <div className="error">{error}</div>}

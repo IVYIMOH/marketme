@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getCurrentUser, homeForRole } from '@/lib/auth';
+import { getCurrentUser, getSignInDestination } from '@/lib/auth';
 
 /**
  * OAuth landing page. signInWithGoogle() sends the provider here.
@@ -13,8 +13,8 @@ import { getCurrentUser, homeForRole } from '@/lib/auth';
  * session on load without this page doing it explicitly. getCurrentUser()
  * therefore just waits for that exchange to land.
  *
- * Role comes from getCurrentUser(), which reads it out of the decoded JWT via
- * extractRole() — the same corrected path the rest of the app uses.
+ * The destination uses the JWT role and the authenticated photographer lookup.
+ * getSignInDestination() validates a requested next path before using it.
  */
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -22,6 +22,7 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     let active = true;
+    const next = new URLSearchParams(window.location.search).get('next');
 
     // The URL may carry an OAuth error instead of a grant.
     const params = new URLSearchParams(
@@ -38,17 +39,22 @@ export default function AuthCallbackPage() {
     let attempts = 0;
     const tick = async () => {
       if (!active) return;
-      const user = await getCurrentUser();
-      if (!active) return;
-      if (user) {
-        router.replace(homeForRole(user.role));
-        return;
+      try {
+        const user = await getCurrentUser();
+        if (!active) return;
+        if (user) {
+          const destination = await getSignInDestination(user, { next });
+          if (active) router.replace(destination);
+          return;
+        }
+        if (++attempts >= 20) {
+          setError('Sign-in did not complete — no session was created from this redirect.');
+          return;
+        }
+        setTimeout(tick, 250);
+      } catch (err) {
+        if (active) setError(err instanceof Error ? err.message : String(err));
       }
-      if (++attempts >= 20) {
-        setError('Sign-in did not complete — no session was created from this redirect.');
-        return;
-      }
-      setTimeout(tick, 250);
     };
     void tick();
 
