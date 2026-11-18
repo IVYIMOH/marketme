@@ -33,7 +33,7 @@ export default function CompletePhotographerProfile() {
           return;
         }
         setUser(current);
-        setName(current.displayName);
+        setName(current.displayName === 'User' ? '' : current.displayName);
         setCompany(current.company ?? '');
         setLoading(false);
       } catch (err) {

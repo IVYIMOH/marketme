@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:32px;background:#010616;color:#f1f5f9;font-family:Arial,sans-serif">
+    <div style="max-width:480px;margin:0 auto;padding:32px;background:#070f20;border:1px solid #293648;border-radius:12px">
+      <h1 style="margin:0 0 24px;color:#febd3e;font-size:24px">NatuVara</h1>
+      <h2 style="font-size:20px">Verify your email</h2>
+      <p>Enter this six-digit code on the NatuVara sign-in page:</p>
+      <p id="verification-code" style="padding:20px;background:#0e1729;color:#febd3e;font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center">{{ .Token }}</p>
+      <p>You can use this code once. After verification, you can complete your photographer profile.</p>
+      <p>Alternatively, <a href="{{ .ConfirmationURL }}" style="color:#febd3e">confirm your email</a> using this link.</p>
+      <p style="color:#94a3b8;font-size:13px">If you did not request this email, you can ignore it.</p>
+    </div>
+  </body>
+</html>

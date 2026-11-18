@@ -258,6 +258,20 @@ button:disabled {
 
 .auth-confirmation { display: grid; gap: 0.5rem; }
 .auth-confirmation .subtle { margin: 0; }
+.auth-panel { max-width: 520px; margin: 1.5rem auto; padding: 1.75rem; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+.auth-panel h1 { font-size: 1.65rem; }
+.auth-code-flow { display: grid; gap: 1rem; }
+.auth-steps { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; list-style: none; margin: 0 0 0.25rem; padding: 0; color: var(--color-text-secondary); font-size: 0.8rem; }
+.auth-steps li { display: inline-flex; align-items: center; gap: 0.4rem; }
+.auth-steps li > span { width: 1.4rem; height: 1.4rem; display: grid; place-items: center; border: 1px solid var(--color-border); border-radius: 50%; }
+.auth-steps li[aria-current="step"] { color: var(--color-primary); }
+.auth-steps li[aria-current="step"] > span { border-color: var(--color-primary); }
+.auth-code-recipient { margin: 0; color: var(--color-text-secondary); font-size: 0.9rem; }
+.auth-code-recipient strong { color: var(--color-text-primary); }
+.auth-code-input { max-width: 240px; letter-spacing: 0.3em; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.auth-code-help { margin: 0; line-height: 1.6; }
+.auth-alternate { margin: 1.25rem 0 0; padding-top: 1rem; border-top: 1px solid var(--color-border); font-size: 0.875rem; }
+@media (max-width: 540px) { .auth-panel { margin-top: 0; padding: 1.25rem; } }
 .auth-spinner {
   display: inline-block;
   width: 1em;

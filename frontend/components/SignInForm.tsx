@@ -110,7 +110,7 @@ export default function SignInForm({ photographerIntent = false }: { photographe
           {busy === 'google' && <Spinner />}{busy === 'google' ? 'Opening Google…' : 'Continue with Google'}
         </button>
       )}
-      <Link href="/auth/forgot-password">Forgot your password?</Link>
+      {!photographerIntent && <Link href="/auth/forgot-password">Forgot your password?</Link>}
       {unconfirmedEmail && (
         <div className="auth-confirmation">
           <p className="subtle">Confirm your email before signing in. Use the link in your inbox or request a new one.</p>

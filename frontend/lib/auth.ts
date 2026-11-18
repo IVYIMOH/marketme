@@ -114,6 +114,26 @@ export async function login(email: string, password: string): Promise<AppUser> {
   return toAppUser(data.session!);
 }
 
+export async function sendEmailCode(email: string, options: SignInOptions = {}): Promise<void> {
+  const { error } = await supabase.auth.signInWithOtp({
+    email: email.trim(),
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: authCallbackUrl(options),
+    },
+  });
+  if (error) throw new AuthError(error.message, error.code);
+}
+
+export async function verifyEmailCode(email: string, code: string): Promise<AppUser> {
+  const token = code.replace(/\s/g, '');
+  if (!/^\d{6}$/.test(token)) throw new AuthError('Enter the six-digit code from your email.');
+  const { data, error } = await supabase.auth.verifyOtp({ email: email.trim(), token, type: 'email' });
+  if (error) throw new AuthError(error.message, error.code);
+  if (!data.session) throw new AuthError('Verification did not create a session. Request a new code and try again.');
+  return toAppUser(data.session);
+}
+
 export async function logout(): Promise<void> {
   const { error } = await supabase.auth.signOut();
   if (error) throw new AuthError(error.message);
