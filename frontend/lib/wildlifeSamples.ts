@@ -167,3 +167,20 @@ export const wildlifePhotos: WildlifePhoto[] = [
   }
 ];
 
+export const wildlifeCollections = ['All photos', 'Big cats', 'Large mammals', 'Birds'] as const;
+export type WildlifeCollection = (typeof wildlifeCollections)[number];
+
+export function filterWildlifePhotos(collection: WildlifeCollection, query: string): WildlifePhoto[] {
+  const search = query.trim().toLowerCase();
+  return wildlifePhotos.filter((photo) => {
+    const inCollection = collection === 'All photos' || photo.category === collection;
+    const matchesSearch = !search || [photo.title, photo.species, photo.location, photo.category, photo.author]
+      .join(' ').toLowerCase().includes(search);
+    return inCollection && matchesSearch;
+  });
+}
+
+export function stepWildlifePhoto(photo: WildlifePhoto, direction: -1 | 1): WildlifePhoto {
+  const current = wildlifePhotos.findIndex((entry) => entry.id === photo.id);
+  return wildlifePhotos[(current + direction + wildlifePhotos.length) % wildlifePhotos.length] ?? photo;
+}

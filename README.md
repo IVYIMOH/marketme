@@ -117,6 +117,7 @@ Run the existing frontend redirect tests, sample unit tests, and production buil
 
 ```bash
 node --experimental-strip-types frontend/tests/authRedirect.test.mjs
+node --experimental-strip-types --test frontend/tests/landingPhotos.test.mjs
 node --test scripts/seed-local-gallery.test.mjs scripts/sample-invoice.test.mjs
 npm run build
 ```
