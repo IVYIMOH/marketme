@@ -134,6 +134,10 @@ These 18 database checks create synthetic users and profiles inside a transactio
 
 Email signup and sign-in, confirmation resend, photographer profile completion, and destinations for buyers, photographers, and admins are implemented. Photographer company information is private. Database permissions protect account roles, ownership, and photographer verification fields.
 
+For the current temporary admin setup, the verified account `ivyimoh@gmail.com` receives the admin role through `20261118010000_temporary_admin_email.sql`. Use its existing password at `/auth/login`; a fresh sign-in opens `/admin`. The rule also handles future email verification and removes this temporary grant if that account changes email. The backend continues to check the stored role for moderation.
+
+Verify the temporary admin rule with `npx --no-install supabase test db supabase/tests/temporary_admin.test.sql`. The checks use temporary users and submissions inside a rolled-back transaction.
+
 Authentication work is still in progress:
 
 - Shared photographer registration, explicit PKCE callback handling, password recovery/reset pages, signed-in navigation, and complete browser verification remain pending.
