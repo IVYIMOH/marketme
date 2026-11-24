@@ -57,6 +57,8 @@ npm run dev
 
 Open **http://127.0.0.1:3000**. Keep Supabase running while using the app.
 
+Development writes to `frontend/.next-dev`; production builds and `npm start` use `frontend/.next`. This keeps a production build from overwriting a running development server's cache.
+
 | Local service | Address |
 | --- | --- |
 | App | http://127.0.0.1:3000 |

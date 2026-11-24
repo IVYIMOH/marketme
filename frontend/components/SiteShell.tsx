@@ -8,7 +8,10 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
   if (pathname === '/') return <>{children}</>;
 
-  return (
+  const isSignInPage = pathname === '/auth/login' || pathname === '/photographer/login';
+  const mainClass = isSignInPage ? 'site-main site-main-sign-in'
+    : pathname === '/gallery' ? 'site-main site-main-gallery' : 'site-main';
+  const shell = (
     <>
       <header className="site-header">
         <Link href="/" className="brand">NatuVara</Link>
@@ -21,7 +24,11 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
           <Link href="/auth/login">Sign in</Link>
         </nav>
       </header>
-      <main className="site-main">{children}</main>
+      <main className={mainClass}>
+        {children}
+      </main>
     </>
   );
+
+  return isSignInPage ? <div className="sign-in-shell">{shell}</div> : shell;
 }

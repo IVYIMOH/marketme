@@ -36,16 +36,25 @@ const PUBLIC_PHOTOGRAPHER_COLUMNS = 'id, user_id, bio, level, verified_at, creat
 
 const PUBLIC_MEDIA_COLUMNS = 'id, photographer_id, title, category, location, lens, price_sats, preview_key, status, created_at, is_sample, photographer_credit, source_url, license_name, license_url';
 
-/** Public gallery. Only ever returns the already-safe, publicly-granted
- * columns — never storage_key. Uses preview_key for the image source. */
-export async function getMedia(): Promise<Media[]> {
-  const { data, error } = await supabase
+export const GALLERY_PAGE_SIZE = 6;
+
+export interface MediaPage {
+  items: Media[];
+  total: number;
+}
+
+/** Public gallery page. Only returns publicly-granted columns, never storage_key. */
+export async function getMediaPage(page = 1): Promise<MediaPage> {
+  const first = (page - 1) * GALLERY_PAGE_SIZE;
+  const { data, count, error } = await supabase
     .from('media')
-    .select(PUBLIC_MEDIA_COLUMNS)
+    .select(PUBLIC_MEDIA_COLUMNS, { count: 'exact' })
     .eq('status', 'approved')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .range(first, first + GALLERY_PAGE_SIZE - 1);
   if (error) throw error;
-  return data as Media[];
+  return { items: data as Media[], total: count ?? 0 };
 }
 
 export async function getMediaById(id: string): Promise<Media> {
