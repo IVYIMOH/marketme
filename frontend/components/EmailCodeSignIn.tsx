@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AuthError, getSignInDestination, sendEmailCode, verifyEmailCode, type AppUser } from '@/lib/auth';
+import { AuthError, getSignInDestination, sendEmailCode, signInWithGoogle, verifyEmailCode, type AppUser } from '@/lib/auth';
 import { validateNext } from '@/lib/authRedirect';
+import GoogleSignInButton from './GoogleSignInButton';
 
-type Action = 'send' | 'resend' | 'verify' | 'continue';
+type Action = 'send' | 'resend' | 'verify' | 'continue' | 'google';
 
 function emailError(error: unknown): string {
   if (error instanceof AuthError) {
@@ -102,6 +103,13 @@ export default function EmailCodeSignIn({ photographerIntent = false }: { photog
     });
   }
 
+  function continueWithGoogle() {
+    void run('google', async () => {
+      await signInWithGoogle(options);
+      return true;
+    });
+  }
+
   function changeEmail() {
     if (inFlight.current) return;
     setSentEmail('');
@@ -159,7 +167,9 @@ export default function EmailCodeSignIn({ photographerIntent = false }: { photog
             {busy === 'send' && <span className="auth-spinner" aria-hidden="true" />}
             {busy === 'send' ? 'Sending code…' : 'Send verification code'}
           </button>
-          <p className="subtle auth-code-help">New to NatuVara? Verify your email first, then complete your photographer profile.</p>
+          <p className="subtle auth-code-help">New to NatuVara? After signing in, you can complete your photographer profile.</p>
+          <GoogleSignInButton busy={busy === 'google'} disabled={busy !== null}
+            onClick={continueWithGoogle} />
         </form>
       )}
     </div>

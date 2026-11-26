@@ -288,7 +288,7 @@ export function LandingPage() {
           <span className="wordmark-symbol"><Aperture aria-hidden="true" /></span>
           <span>Natu<span>Vara</span><small>NATURE IN FOCUS</small></span>
         </a>
-        <p>Wildlife photography. Independent creators.</p>
+        <p>Wildlife photography. Independent creators. <Link href="/privacy">Privacy policy</Link></p>
         <span>NATUVARA &nbsp;·&nbsp; A WORLD WORTH SEEING</span>
       </footer>
 

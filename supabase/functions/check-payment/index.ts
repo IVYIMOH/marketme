@@ -15,13 +15,15 @@
 // the matching amount. Polling it cannot manufacture a payment.
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { corsHeaders, jsonResponse } from '../_shared/cors.ts';
+import { responsesFor } from '../_shared/cors.ts';
 import { reconcilePayment, type PaymentRow } from '../_shared/settle.ts';
 
 const SELECT =
   'id, buyer_id, media_id, amount_sats, status, provider_invoice_id, payment_hash, expires_at, paid_at';
 
 Deno.serve(async (req) => {
+  const { allowed, corsHeaders, jsonResponse } = responsesFor(req);
+  if (!allowed) return jsonResponse({ error: 'Origin not allowed' }, 403);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
 
@@ -76,7 +78,7 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   if (rowError) {
-    console.error('payments lookup failed:', rowError.message);
+    console.error('Payment lookup failed');
     return jsonResponse({ error: 'Lookup failed' }, 500);
   }
   if (!row) return jsonResponse({ error: 'No payment found for you on that item' }, 404);
@@ -85,7 +87,6 @@ Deno.serve(async (req) => {
 
   switch (outcome.kind) {
     case 'settled':
-      console.log(`check-payment settled ${outcome.paymentId} (${outcome.reason})`);
       return jsonResponse({ status: 'paid', paymentId: outcome.paymentId, justSettled: true });
     case 'already_paid':
       return jsonResponse({ status: 'paid', paymentId: outcome.paymentId });
@@ -101,7 +102,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ status: outcome.status, paymentId: outcome.paymentId });
     case 'unverifiable':
       // Do not present this as "not paid" — we genuinely do not know.
-      console.error(`check-payment could not verify ${outcome.paymentId}: ${outcome.reason}`);
+      console.error('Payment verification failed');
       return jsonResponse(
         { status: 'unknown', paymentId: outcome.paymentId, error: 'Could not verify with provider' },
         502,

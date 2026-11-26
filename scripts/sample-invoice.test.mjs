@@ -32,7 +32,7 @@ async function attemptInvoice(isSample, price) {
       if (name.startsWith('npm:')) return {
         createClient: (_url, _key, options) => options ? admin : { auth: { getUser: async () => ({ data: { user: { id: 'test-buyer' } } }) } },
       };
-      if (name.endsWith('/cors.ts')) return { corsHeaders: {}, jsonResponse: (body, status = 200) => Response.json(body, { status }) };
+      if (name.endsWith('/cors.ts')) return { responsesFor: () => ({ allowed: true, corsHeaders: {}, jsonResponse: (body, status = 200) => Response.json(body, { status }) }) };
       if (name.endsWith('/lnbits.ts')) return { LnbitsError: Error, createInvoice: async () => { providerCalls++; throw new Error('Mock provider'); } };
       throw new Error(`Unexpected dependency ${name}`);
     },

@@ -5,7 +5,7 @@
 // row becomes 'paid'.
 
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
-import { getPaymentStatus, isSettled, LnbitsError } from './lnbits.ts';
+import { getPaymentStatus, isSettled } from './lnbits.ts';
 
 export interface PaymentRow {
   id: string;
@@ -52,14 +52,17 @@ export async function reconcilePayment(
   let status;
   try {
     status = await getPaymentStatus(row.provider_invoice_id);
-  } catch (e) {
+  } catch {
     return {
       kind: 'unverifiable',
       paymentId: row.id,
-      reason: e instanceof LnbitsError ? e.message : String(e),
+      reason: 'Provider status unavailable',
     };
   }
 
+  if (status.details?.checking_id && status.details.checking_id !== row.provider_invoice_id) {
+    return { kind: 'unverifiable', paymentId: row.id, reason: 'Invoice identifier mismatch' };
+  }
   const verdict = isSettled(status, row.amount_sats);
 
   if (verdict.settled) {
@@ -73,11 +76,15 @@ export async function reconcilePayment(
       .maybeSingle();
 
     if (error) {
-      return { kind: 'unverifiable', paymentId: row.id, reason: error.message };
+      return { kind: 'unverifiable', paymentId: row.id, reason: 'Settlement update failed' };
     }
     // No row back means another caller won the race — still a success.
     if (!updated) return { kind: 'already_paid', paymentId: row.id };
     return { kind: 'settled', paymentId: row.id, reason: verdict.reason };
+  }
+
+  if (status.paid === true) {
+    return { kind: 'unverifiable', paymentId: row.id, reason: verdict.reason };
   }
 
   // Not settled. If the invoice has also passed its expiry, retire the row so

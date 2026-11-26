@@ -12,4 +12,14 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, { auth: { flowType: 'pkce' } });
+
+const settingsUrl = `${supabaseUrl.replace(/\/+$/, '')}/auth/v1/settings`;
+const settingsHeaders = { apikey: supabaseAnonKey };
+
+export async function isGoogleSignInEnabled(signal: AbortSignal): Promise<boolean> {
+  const response = await fetch(settingsUrl, { headers: settingsHeaders, signal });
+  if (!response.ok) return false;
+  const settings = await response.json();
+  return settings?.external?.google === true;
+}

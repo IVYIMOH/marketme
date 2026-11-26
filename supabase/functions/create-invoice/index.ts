@@ -8,12 +8,14 @@
 // process — it is not returned to the client and not logged.
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { corsHeaders, jsonResponse } from '../_shared/cors.ts';
-import { createInvoice, LnbitsError } from '../_shared/lnbits.ts';
+import { responsesFor } from '../_shared/cors.ts';
+import { createInvoice } from '../_shared/lnbits.ts';
 
 const INVOICE_EXPIRY_SECONDS = 3600;
 
 Deno.serve(async (req) => {
+  const { allowed, corsHeaders, jsonResponse } = responsesFor(req);
+  if (!allowed) return jsonResponse({ error: 'Origin not allowed' }, 403);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
 
@@ -61,12 +63,12 @@ Deno.serve(async (req) => {
   // Never trust a client-supplied amount. Only approved media is purchasable.
   const { data: media, error: mediaError } = await admin
     .from('media')
-    .select('id, title, price_sats, status, is_sample')
+    .select('id, price_sats, status, is_sample')
     .eq('id', mediaId)
     .maybeSingle();
 
   if (mediaError) {
-    console.error('media lookup failed:', mediaError.message);
+    console.error('Invoice media lookup failed');
     return jsonResponse({ error: 'Could not load that item' }, 500);
   }
   if (!media) return jsonResponse({ error: 'No such item' }, 404);
@@ -77,7 +79,6 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'That item is not for sale' }, 409);
   }
   if (typeof media.price_sats !== 'number' || media.price_sats <= 0) {
-    console.error(`media ${mediaId} has unusable price_sats:`, media.price_sats);
     return jsonResponse({ error: 'That item has no valid price' }, 409);
   }
   const amountSats = media.price_sats;
@@ -120,28 +121,20 @@ Deno.serve(async (req) => {
   }
 
   // ---- 5. Create the invoice at LNbits ----------------------------------
-  const webhookUrl = (() => {
-    const secret = Deno.env.get('LNBITS_WEBHOOK_SECRET');
-    const url = `${supabaseUrl}/functions/v1/lnbits-webhook`;
-    // Shared secret as defence in depth: the webhook route is public, so it
-    // can also check that a caller at least knows this value. Settlement is
-    // still re-verified against LNbits regardless.
-    return secret ? `${url}?s=${encodeURIComponent(secret)}` : url;
-  })();
+  // LNbits supports a callback URL, but cannot attach authorization headers.
+  // A trusted relay can attach the webhook secret. Buyer polling also settles invoices.
+  const webhookUrl = Deno.env.get('LNBITS_WEBHOOK_URL');
 
   let invoice;
   try {
     invoice = await createInvoice({
       amountSats,
-      memo: `MarketMe: ${media.title}`.slice(0, 200),
+      memo: 'NatuVara photo purchase',
       webhook: webhookUrl,
       expirySeconds: INVOICE_EXPIRY_SECONDS,
-      extra: { media_id: mediaId, buyer_id: buyerId },
     });
-  } catch (e) {
-    // Surface the class of failure without echoing anything key-bearing.
-    const msg = e instanceof LnbitsError ? e.message : String(e);
-    console.error('LNbits createInvoice failed:', msg);
+  } catch {
+    console.error('Lightning invoice creation failed');
     return jsonResponse({ error: 'Could not reach the Lightning provider' }, 502);
   }
 
@@ -165,8 +158,7 @@ Deno.serve(async (req) => {
   if (insertError) {
     // The invoice exists at LNbits but we failed to record it. Say so loudly:
     // an unrecorded invoice cannot be settled by the webhook.
-    console.error('payments insert failed after invoice creation:', insertError.message,
-      '| payment_hash:', invoice.payment_hash);
+    console.error('Payment recording failed after invoice creation');
     return jsonResponse({ error: 'Invoice created but could not be recorded' }, 500);
   }
 

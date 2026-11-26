@@ -55,8 +55,8 @@ export default function RegisterPage() {
                  onChange={(e) => setEmail(e.target.value)} />
         </label>
         <label>
-          Password
-          <input type="password" value={password} required minLength={6} autoComplete="new-password"
+          Password (at least 12 characters)
+          <input type="password" value={password} required minLength={12} autoComplete="new-password"
                  onChange={(e) => setPassword(e.target.value)} />
         </label>
         <div className="row">

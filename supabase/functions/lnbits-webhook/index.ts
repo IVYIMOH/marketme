@@ -75,15 +75,9 @@ function firstString(obj: Record<string, unknown>, keys: string[]): string | nul
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
 
-  // Defence in depth: if a webhook secret is configured, require it. Not the
-  // security boundary — the LNbits re-check is — but it keeps casual
-  // unauthenticated traffic out of this public route.
   const expectedSecret = Deno.env.get('LNBITS_WEBHOOK_SECRET');
-  if (expectedSecret) {
-    if (new URL(req.url).searchParams.get('s') !== expectedSecret) {
-      console.warn('webhook rejected: bad or missing shared secret');
-      return json({ error: 'Forbidden' }, 403);
-    }
+  if (!expectedSecret || req.headers.get('Authorization') !== `Bearer ${expectedSecret}`) {
+    return json({ error: 'Forbidden' }, 403);
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -96,7 +90,6 @@ Deno.serve(async (req) => {
   const raw = await req.text();
   const payload = parsePayload(raw);
   if (!payload) {
-    console.warn('webhook body was not parseable JSON:', raw.slice(0, 300));
     return json({ error: 'Unparseable body' }, 400);
   }
 
@@ -105,10 +98,6 @@ Deno.serve(async (req) => {
   const hashHint = firstString(payload, ['payment_hash', 'paymentHash']);
   const checkingHint = firstString(payload, ['checking_id', 'checkingId']);
   if (!hashHint && !checkingHint) {
-    console.warn(
-      'webhook payload carried no payment_hash or checking_id; keys:',
-      Object.keys(payload).join(', '),
-    );
     return json({ error: 'No invoice identifier in payload' }, 400);
   }
 
@@ -125,12 +114,11 @@ Deno.serve(async (req) => {
   const { data: row, error: rowError } = await query.maybeSingle();
 
   if (rowError) {
-    console.error('payments lookup failed:', rowError.message);
+    console.error('Webhook payment lookup failed');
     return json({ error: 'Lookup failed' }, 500);
   }
   if (!row) {
     // An identifier we never issued. Refuse rather than create anything.
-    console.warn('webhook for unknown invoice; hash:', hashHint, 'checking_id:', checkingHint);
     return json({ error: 'Unknown invoice' }, 404);
   }
 
@@ -139,20 +127,17 @@ Deno.serve(async (req) => {
 
   switch (outcome.kind) {
     case 'settled':
-      console.log(`webhook settled ${outcome.paymentId} (${outcome.reason})`);
       return json({ ok: true, settled: true, paymentId: outcome.paymentId }, 200);
     case 'already_paid':
       return json({ ok: true, alreadyPaid: true }, 200);
     case 'expired':
       return json({ ok: true, settled: false, reason: 'invoice expired' }, 200);
     case 'not_settled':
-      console.warn(`refusing to settle ${outcome.paymentId}: ${outcome.reason}`);
       return json({ ok: true, settled: false, reason: outcome.reason }, 200);
     case 'wrong_status':
-      console.warn(`webhook for ${outcome.paymentId} in status ${outcome.status}; refusing`);
       return json({ error: `Row is ${outcome.status}` }, 409);
     case 'unverifiable':
-      console.error(`webhook could not verify ${outcome.paymentId}: ${outcome.reason}`);
+      console.error('Webhook payment verification failed');
       // check-payment will pick this up when the buyer's page next polls.
       return json({ error: 'Could not verify with provider' }, 500);
   }

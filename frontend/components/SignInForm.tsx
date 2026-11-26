@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import GoogleSignInButton from './GoogleSignInButton';
 import { AuthError, getSignInDestination, login, resendConfirmation, signInWithGoogle } from '@/lib/auth';
 import { validateNext } from '@/lib/authRedirect';
 
@@ -104,12 +105,8 @@ export default function SignInForm({ photographerIntent = false }: { photographe
         </button>
         <Link href={registerHref}>Create an account</Link>
       </div>
-      {process.env.NEXT_PUBLIC_GOOGLE_ENABLED === 'true' && (
-        <button type="button" className="ghost" disabled={busy !== null} aria-busy={busy === 'google'}
-          onClick={() => { void run('google', () => signInWithGoogle(options)); }}>
-          {busy === 'google' && <Spinner />}{busy === 'google' ? 'Opening Google…' : 'Continue with Google'}
-        </button>
-      )}
+      <GoogleSignInButton busy={busy === 'google'} disabled={busy !== null}
+        onClick={() => { void run('google', () => signInWithGoogle(options)); }} />
       {!photographerIntent && <Link href="/auth/forgot-password">Forgot your password?</Link>}
       {unconfirmedEmail && (
         <div className="auth-confirmation">

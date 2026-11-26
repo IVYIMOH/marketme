@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import AccountLink from './AccountLink';
 
 export default function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -21,7 +22,8 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
           <Link href="/photographer/dashboard">Dashboard</Link>
           <Link href="/photographer/submit">Submit</Link>
           <Link href="/admin">Admin</Link>
-          <Link href="/auth/login">Sign in</Link>
+          <AccountLink />
+          <Link href="/privacy">Privacy</Link>
         </nav>
       </header>
       <main className={mainClass}>

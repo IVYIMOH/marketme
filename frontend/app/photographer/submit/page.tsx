@@ -52,7 +52,7 @@ function SubmitForm() {
         storageKey,
         mimeType: file.type,
       });
-      setOk(`Submitted "${row.title}" — status ${row.status}. Uploaded to ${storageKey}. It stays out of the gallery until an admin approves it.`);
+      setOk(`Submitted "${row.title}" — status ${row.status}. It stays out of the gallery until an admin approves it.`);
       setTitle(''); setLocation(''); setLens(''); setFile(null);
       // Remount the file input so the previous filename is cleared; a file
       // input's value cannot be set programmatically to anything but ''.
@@ -128,9 +128,8 @@ function SubmitForm() {
         </button>
       </div>
       <p className="subtle" style={{ margin: 0 }}>
-        The file is uploaded to the private &apos;media&apos; bucket under your
-        photographer id, and that storage path becomes storage_key. JPEG, PNG or
-        WebP, up to 10 MiB.
+        Choose a JPEG, PNG or WebP up to 10 MiB. The gallery shows a preview after approval.
+        Buyers receive the original file, including any embedded location information.
       </p>
     </form>
   );

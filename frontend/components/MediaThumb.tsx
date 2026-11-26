@@ -6,7 +6,7 @@ import { getSignedMediaUrl } from '@/lib/api';
 /**
  * Renders a stored object from the private 'media' bucket via a signed URL.
  *
- * Falls back to showing the key when no signed URL can be issued, which is the
+ * Shows a placeholder when no signed URL can be issued, which is the
  * correct outcome for an object the viewer is not entitled to read rather than
  * an error worth surfacing.
  */
@@ -22,7 +22,7 @@ export default function MediaThumb({ storageKey, alt }: { storageKey: string; al
   }, [storageKey]);
 
   if (url === undefined) return <div className="thumb">Loading…</div>;
-  if (url === null) return <div className="thumb">{storageKey}</div>;
+  if (url === null) return <div className="thumb">Preview unavailable</div>;
 
   return (
     // eslint-disable-next-line @next/next/no-img-element -- signed URLs are

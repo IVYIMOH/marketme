@@ -50,12 +50,11 @@ class Handler(BaseHTTPRequestHandler):
         prefix = "/api/v1/payments/"
 
         if not path.startswith(prefix):
-            log(f"GET {path} -> 404 (unrecognised path)")
+            log("Unrecognised request -> 404")
             self.send_error(404, "Not found")
             return
 
         checking_id = unquote(path[len(prefix):])
-        api_key = self.headers.get("X-Api-Key", "<none>")
         current = verdict()
 
         if current == "paid":
@@ -81,10 +80,7 @@ class Handler(BaseHTTPRequestHandler):
                 },
             }
 
-        log(
-            f"GET /api/v1/payments/{checking_id}  x-api-key={api_key}  "
-            f"-> paid={body['paid']} details.status={body['details']['status']}"
-        )
+        log(f"Payment status lookup -> paid={body['paid']}")
 
         payload = json.dumps(body).encode()
         self.send_response(200)
@@ -99,5 +95,6 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     port = int(os.environ.get("STUB_PORT", "9777"))
-    print(f"stub LNbits listening on 0.0.0.0:{port} (verdict={verdict()})", flush=True)
-    HTTPServer(("0.0.0.0", port), Handler).serve_forever()
+    host = os.environ.get("STUB_HOST", "127.0.0.1")
+    print(f"stub LNbits listening on {host}:{port}", flush=True)
+    HTTPServer((host, port), Handler).serve_forever()

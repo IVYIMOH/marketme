@@ -102,7 +102,7 @@ export async function completeMyPhotographerProfile(input: {
   });
   if (error) throw new Error(error.message);
   const { error: metadataError } = await supabase.auth.updateUser({
-    data: { display_name: displayName, company },
+    data: { display_name: displayName },
   });
   if (metadataError) throw new Error(metadataError.message);
 }
@@ -134,7 +134,15 @@ export async function submitMedia(input: {
     // from `authenticated`, so the whole insert failed with 42501.
     .select(PUBLIC_MEDIA_COLUMNS)
     .single();
-  if (error) throw error;
+  if (error) {
+    // A rejected database write leaves both newly uploaded files unreferenced.
+    // A network error is ambiguous: the insert may have committed.
+    if (/^(23|42501)/.test(error.code) && input.storageKey.startsWith(input.photographerId + '/originals/')) {
+      const previewKey = input.storageKey.replace('/originals/', '/previews/') + '.jpg';
+      await supabase.storage.from(MEDIA_BUCKET).remove([input.storageKey, previewKey]);
+    }
+    throw error;
+  }
   return data as Media;
 }
 
@@ -179,25 +187,38 @@ export async function setPhotographerLevel(
 
 export const MEDIA_BUCKET = 'media';
 
-/**
- * Uploads the chosen file into the private 'media' bucket and returns the
- * storage path to pass to submitMedia() as storageKey.
- *
- * The path's first segment is the photographer id, which is what the
- * media_objects_insert_own policy checks — a photographer cannot write
- * outside their own folder even by crafting the path.
- *
- * Signature verified against the installed @supabase/supabase-js 2.112.4
- * typings: upload(path, fileBody, fileOptions?) -> { data: { id, path,
- * fullPath }, error }.
- */
+/** Upload a re-encoded preview and a separate private original. */
 export async function uploadMediaFile(photographerId: string, file: File): Promise<string> {
-  const path = `${photographerId}/${crypto.randomUUID()}-${file.name}`;
-  const { data, error } = await supabase.storage
-    .from(MEDIA_BUCKET)
-    .upload(path, file, { contentType: file.type, upsert: false });
-  if (error) throw error;
-  return data.path;
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) {
+    throw new Error('Choose a JPEG, PNG or WebP image up to 10 MiB.');
+  }
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement('canvas');
+  try {
+    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Could not prepare the preview.');
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  } finally {
+    bitmap.close();
+  }
+  const preview = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
+  if (!preview) throw new Error('Could not prepare the preview.');
+
+  const id = crypto.randomUUID();
+  const previewKey = `${photographerId}/previews/${id}.jpg`;
+  const originalKey = `${photographerId}/originals/${id}`;
+  const bucket = supabase.storage.from(MEDIA_BUCKET);
+  const { error: previewError } = await bucket.upload(previewKey, preview, { contentType: 'image/jpeg' });
+  if (previewError) throw previewError;
+  const { error } = await bucket.upload(originalKey, file, { contentType: file.type });
+  if (error) {
+    await bucket.remove([previewKey]);
+    throw error;
+  }
+  return originalKey;
 }
 
 /**
@@ -225,8 +246,7 @@ export async function getSignedMediaUrl(key: string, expiresIn = 3600): Promise<
  * Done as a separate query rather than a PostgREST embed: photographers.user_id
  * and profiles.id both reference auth.users(id), but there is no FK directly
  * between the two tables, so PostgREST has no relationship to traverse.
- * profiles is world-readable under profiles_select_public, so this needs no
- * new grant.
+ * only directory entries and the caller’s own profile are visible.
  */
 export async function getDisplayNames(userIds: string[]): Promise<Record<string, string>> {
   if (userIds.length === 0) return {};
