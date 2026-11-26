@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import PhotoBanner from '@/components/PhotoBanner';
+import { MapPin } from '@/components/landing/Icons';
 import MediaThumb from '@/components/MediaThumb';
 import SampleAttribution from '@/components/SampleAttribution';
 import { GALLERY_PAGE_SIZE, getMediaPage, type Media } from '@/lib/api';
@@ -50,17 +52,17 @@ export default function GalleryPage() {
 
   return (
     <section className="gallery-page" aria-labelledby="gallery-heading">
-      <header className="gallery-header">
-        <div>
-          <h1 id="gallery-heading" ref={heading} tabIndex={-1}>Gallery</h1>
-          <p className="subtle">Discover wildlife, wild places, and the people who capture them.</p>
-        </div>
+      <PhotoBanner photoId="elephant">
+        <h1 id="gallery-heading" ref={heading} tabIndex={-1}>Gallery</h1>
+        <p>Discover wildlife, wild places, and the people who capture them.</p>
+      </PhotoBanner>
+      <div className="gallery-header">
         <p className="gallery-count" role="status" aria-live="polite" aria-atomic="true">
           {loading ? 'Loading photographs…' : error ? 'Gallery unavailable' : total > 0
             ? `${(page - 1) * GALLERY_PAGE_SIZE + 1}–${Math.min(page * GALLERY_PAGE_SIZE, total)} of ${total} photos`
             : '0 photos'}
         </p>
-      </header>
+      </div>
 
       <div id="gallery-results" aria-busy={loading}>
         {error && (
@@ -90,14 +92,16 @@ export default function GalleryPage() {
             {items.map((m) => (
               <article key={m.id} className="gallery-card">
                 <Link href={`/image/${m.id}`} className="gallery-card-link">
-                  <div className="gallery-card-image"><MediaThumb storageKey={m.preview_key} alt={m.title} /></div>
-                  <div className="gallery-card-heading">
-                    <p className="gallery-card-category">{m.category}</p>
-                    <h2>{m.title}</h2>
+                  <div className="gallery-card-image">
+                    <MediaThumb storageKey={m.preview_key} alt={m.title} />
+                    <div className="gallery-card-heading">
+                      <p className="gallery-card-category">{m.category}</p>
+                      <h2>{m.title}</h2>
+                    </div>
                   </div>
                 </Link>
                 <div className="gallery-card-details">
-                  <p className="gallery-card-location">{m.location}</p>
+                  <p className="gallery-card-location"><MapPin aria-hidden="true" />{m.location}</p>
                   {m.lens && <p className="meta">{m.lens}</p>}
                   <p className="price">{m.is_sample ? 'Sample — not for sale' : `${m.price_sats.toLocaleString()} sats`}</p>
                   {m.is_sample && <SampleAttribution media={m} />}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import PhotoBanner from '@/components/PhotoBanner';
 import { getPhotographers, getDisplayNames, type Photographer } from '@/lib/api';
 
 export default function PhotographersPage() {
@@ -28,10 +29,9 @@ export default function PhotographersPage() {
 
   return (
     <>
-      <h1>Photographers</h1>
-      <p className="subtle">
-        Directory from getPhotographers(), with names read from profiles.
-      </p>
+      <PhotoBanner photoId="giraffe"><h1>Photographers</h1>
+        <p>Meet the people behind the photographs.</p>
+      </PhotoBanner>
 
       {error && <div className="error">{error}</div>}
       {items === null && !error && <div className="empty">Loading…</div>}

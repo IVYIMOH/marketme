@@ -35,11 +35,10 @@ export default function RegisterPage() {
   }
 
   return (
-    <>
+    <section className="auth-panel">
       <h1>Create an account</h1>
       <p className="subtle">
-        New accounts start as buyer. display_name is carried into profiles by the
-        handle_new_user trigger.
+        Create a buyer account to collect photographs.
       </p>
 
       <form className="stack" onSubmit={onSubmit}>
@@ -64,6 +63,6 @@ export default function RegisterPage() {
           <Link href="/auth/login">I already have an account</Link>
         </div>
       </form>
-    </>
+    </section>
   );
 }

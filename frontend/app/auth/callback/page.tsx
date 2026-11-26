@@ -44,20 +44,20 @@ export default function AuthCallbackPage() {
 
   if (error) {
     return (
-      <>
+      <section className="auth-panel">
         <h1>Sign-in failed</h1>
         <div className="error" role="alert">{error}</div>
         <p className="subtle" style={{ marginTop: '1rem' }}>
           <Link href={loginHref}>Back to sign in</Link>
         </p>
-      </>
+      </section>
     );
   }
 
   return (
-    <>
+    <section className="auth-panel">
       <h1>Finishing sign-in…</h1>
       <div className="empty">Completing the redirect and reading your session.</div>
-    </>
+    </section>
   );
 }

@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { getCurrentUser, type AppUser } from '@/lib/auth';
+import PhotoBanner from '@/components/PhotoBanner';
 import MediaThumb from '@/components/MediaThumb';
 import { getModerationQueue, approveMedia, rejectMedia, type Media } from '@/lib/api';
 
-export default function AdminPage() {
+function ModerationQueue() {
   const [user, setUser] = useState<AppUser | null | undefined>(undefined);
   const [queue, setQueue] = useState<Media[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -62,10 +63,6 @@ export default function AdminPage() {
 
   return (
     <>
-      <h1>Moderation queue</h1>
-      <p className="subtle">
-        Pending submissions, via get_moderation_queue(). Signed in as {user.email}.
-      </p>
 
       {error && <div className="error">{error}</div>}
 
@@ -84,7 +81,6 @@ export default function AdminPage() {
               <p className="meta">{m.category} · {m.location}</p>
               {m.lens && <p className="meta">{m.lens}</p>}
               <p className="price">{m.price_sats.toLocaleString()} sats</p>
-              {m.storage_key && <p className="meta">key: {m.storage_key}</p>}
               <div className="row" style={{ marginTop: '0.6rem' }}>
                 <button disabled={busyId === m.id} onClick={() => act('approve', m.id)}>
                   {busyId === m.id ? '…' : 'Approve'}
@@ -100,4 +96,11 @@ export default function AdminPage() {
       )}
     </>
   );
+}
+
+export default function AdminPage() {
+  return <>
+    <PhotoBanner photoId="rhino"><h1>Moderation queue</h1><p>Review photographs before they enter the gallery.</p></PhotoBanner>
+    <ModerationQueue />
+  </>;
 }

@@ -51,3 +51,10 @@ The photographs retain their individual Creative Commons licenses. The files are
 - Original: [Carraca lila (Coracias caudata), parque nacional Kruger, Sudáfrica, 2018-07-26, DD 17.jpg](https://commons.wikimedia.org/wiki/File:Carraca_lila_(Coracias_caudata),_parque_nacional_Kruger,_Sud%C3%A1frica,_2018-07-26,_DD_17.jpg)
 - Photographer: Diego Delso
 - License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0)
+
+## serengeti.webp
+
+- Original: [Serengeti-Landscape-2012.JPG](https://commons.wikimedia.org/wiki/File:Serengeti-Landscape-2012.JPG)
+- Photographer: Bjørn Christian Tørrissen
+- License: [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)
+- The local WebP is resized and re-encoded. The layout crops it for display.

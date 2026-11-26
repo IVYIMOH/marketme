@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import PhotoBanner from '@/components/PhotoBanner';
 import MediaThumb from '@/components/MediaThumb';
 import { getMySubmissions, type Media } from '@/lib/api';
 
@@ -40,9 +41,6 @@ function Submissions() {
           <p className="meta">{m.category} · {m.location}</p>
           {m.lens && <p className="meta">{m.lens}</p>}
           <p className="price">{m.price_sats.toLocaleString()} sats</p>
-          {/* storage_key and the moderation fields arrive only through
-              get_my_submissions(), never from a base-table read. */}
-          {m.storage_key && <p className="meta">key: {m.storage_key}</p>}
           {m.status === 'rejected' && m.reject_reason && (
             <p className="meta rejection-reason">Reason: {m.reject_reason}</p>
           )}
@@ -57,12 +55,11 @@ function Submissions() {
 
 export default function DashboardPage() {
   return (
-    <ProtectedRoute requiredRole="photographer">
-      <h1>My submissions</h1>
-      <p className="subtle">
-        All statuses, via the get_my_submissions() accessor.
-      </p>
-      <Submissions />
-    </ProtectedRoute>
+    <>
+      <PhotoBanner photoId="leopard"><h1>My submissions</h1>
+        <p>Track your photographs from review to publication.</p>
+      </PhotoBanner>
+      <ProtectedRoute requiredRole="photographer"><Submissions /></ProtectedRoute>
+    </>
   );
 }

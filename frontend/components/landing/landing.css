@@ -485,3 +485,8 @@
   #natuvara-home .tile-photo-cheetah, #natuvara-home .tile-photo-leopard, #natuvara-home .tile-photo-zebra, #natuvara-home .tile-photo-roller { grid-column: span 1; grid-row: span 1; }
   #natuvara-home .photographers-copy h2 { font-size: 36px; }
 }
+
+@media (min-width: 1024px) {
+  #natuvara-home .explore-section { max-width: none; padding-inline: var(--page-gutter); }
+  #natuvara-home .photo-grid { grid-auto-rows: clamp(130px, 10.5vw, 260px); }
+}

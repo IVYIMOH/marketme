@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import MediaThumb from '@/components/MediaThumb';
+import PhotoBanner from '@/components/PhotoBanner';
+import { MapPin } from '@/components/landing/Icons';
 import SampleAttribution from '@/components/SampleAttribution';
 import { getMediaById, getPhotographers, getDisplayNames, type Media } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
@@ -165,7 +167,7 @@ export default function ImageDetailPage() {
   if (error) {
     return (
       <>
-        <h1>Not available</h1>
+        <PhotoBanner photoId="zebra"><h1>Photograph unavailable</h1></PhotoBanner>
         <div className="error">{error}</div>
         <p className="subtle" style={{ marginTop: '1rem' }}>
           <Link href="/gallery">Back to gallery</Link>
@@ -189,9 +191,10 @@ export default function ImageDetailPage() {
           <MediaThumb storageKey={media.preview_key} alt={media.title} />
         </div>
 
-        <div>
+        <div className="detail-copy">
+          <p className="gallery-card-category">{media.category}</p>
           <h1>{media.title}</h1>
-          <p className="meta">{media.category} · {media.location}</p>
+          <p className="gallery-card-location"><MapPin aria-hidden="true" />{media.location}</p>
           {media.lens && <p className="meta">Lens: {media.lens}</p>}
           {media.is_sample ? <SampleAttribution media={media} /> : <p className="meta">
             Photographer: {photographerName ?? <span className="subtle">unknown</span>}
@@ -261,11 +264,7 @@ export default function ImageDetailPage() {
                 </span>
               </div>
 
-              {/* No QR: qrcode.react is not a dependency of this project. */}
-              <p className="subtle" style={{ margin: '0.5rem 0 0' }}>
-                No QR code yet — qrcode.react is not installed. Copy the invoice
-                string into your wallet instead.
-              </p>
+
             </div>
           )}
 
